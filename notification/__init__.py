@@ -21,22 +21,41 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     openai.api_key = os.getenv("AZURE_OPENAI_KEY")
     openai.api_base = os.getenv("AZURE_OPENAI_ENDPOINT") # your endpoint should look like the following https://YOUR_RESOURCE_NAME.openai.azure.com/
     openai.api_type = 'azure'
-    openai.api_version = '2023-05-15' # this may change in the future
+    openai.api_version = '2023-07-01-preview' # this may change in the future
 
     deployment_name='gpt35' #This will correspond to the custom name you chose for your deployment when you deployed a model. 
 
     # Send a completion call to generate an answer
     logging.info('Sending a completion job')
-    system_prompt = "You are a question and answer chatbot. Answer questions asked in plain english in a short, descriptive way. Do not provide additional information once you have answered the question. "
-    start_phrase = system_prompt + my_input
-    response = openai.Completion.create(engine=deployment_name, prompt=start_phrase, max_tokens=100, stream=True)
+
+    response = openai.ChatCompletion.create(
+        engine="gpt35",
+        messages = [{"role":"system","content":"You are an AI assistant that helps people find information."},{"role":"user","content":"who is jfk?"},{"role":"assistant","content":"JFK is an acronym that refers to John Fitzgerald Kennedy, who was the 35th President of the United States. He served as President from 1961 until his assassination in 1963. Kennedy was known for his charisma, his advocacy for civil rights, and his handling of the Cold War. His presidency is also associated with the Bay of Pigs invasion, the Cuban Missile Crisis, and the Apollo space program."}],
+        temperature=0.7,
+        max_tokens=800,
+        top_p=0.95,
+        frequency_penalty=0,
+        presence_penalty=0,
+        stop=None)
+    
+    # response = openai.Completion.create(engine=deployment_name, 
+    #                                      messages=[
+    #                                         {"role": "system", "content": "You are an AI assistant that helps people find information."},
+    #                                         {"role": "user", "content": my_input}
+    #                                     ], 
+    #                                     max_tokens=100,
+    #                                     temperature=0.7,
+    #                                     top_p=0.95,
+    #                                     frequency_penalty=0,
+    #                                     presence_penalty=0,
+    #                                     stream=True)
     final = False
     first=True
 
     while final == False:
         for chunk in response:
             logging.info('Chunk received')
-            content = chunk['choices'][0]['text'].replace('\n', ' ').replace('\r', '').replace('\t', ' ').replace('\b', ' ').replace('\f', ' ')
+            content = chunk['choices'][0]['message']['content'].replace('\n', ' ').replace('\r', '').replace('\t', ' ').replace('\b', ' ').replace('\f', ' ')
             finish_reason = chunk['choices'][0]['finish_reason']
             if content is not None:
                 logging.info(content)
