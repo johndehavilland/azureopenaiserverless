@@ -6,6 +6,11 @@
             #myInput {
                 height: 100px;
             }
+
+            .answer{
+                border: 1px solid gray;
+                padding: 10px
+            }
         </style>
     </head>
 <body>
@@ -62,11 +67,13 @@
             ws.onmessage = event => {
                 let data = JSON.parse(event.data);
                 if(data.first){
-                    let br = document.createElement('br');
-                    messages.appendChild(br);
+                    const div = document.createElement("div");
+                    div.className = "answer";
+                    messages.appendChild(div);
                 }
-                
-                messages.innerText += ' ' + data.msgchunk ;
+                if(data.msgchunk.content){
+                    messages.lastChild.innerText += ' ' + data.msgchunk.content ;
+                }
             };
 
             ws.onclose = (e => {
